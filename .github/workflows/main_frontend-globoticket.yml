@@ -21,18 +21,17 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
-
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build frontend/frontend.csproj --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish frontend/frontend.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
         with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          name: frontend
+          path: ${{env.DOTNET_ROOT}}/frontend
 
   deploy:
     runs-on: ubuntu-latest
@@ -45,7 +44,7 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v2
         with:
-          name: .net-app
+          name: frontend
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
