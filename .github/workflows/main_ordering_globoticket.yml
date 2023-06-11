@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'ordering/**'
+      
   workflow_dispatch:
 
 jobs:
@@ -25,12 +28,12 @@ jobs:
         run: dotnet build ordering/ordering.csproj --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish frontend/frontend.csproj -c Release -o ${{env.DOTNET_ROOT}}/ordering
+        run: dotnet publish ordering/ordering.csproj -c Release -o ${{env.DOTNET_ROOT}}/ordering
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
-          name: frontend
+          name: ordering
           path: ${{env.DOTNET_ROOT}}/ordering
 
   deploy:
