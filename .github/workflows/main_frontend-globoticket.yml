@@ -85,15 +85,17 @@ jobs:
 
       - name: Install playwright
         run:  npm init playwright@latest
-    
-      - name: Install playwright browsers
-        run: npx playwright install --with-deps
           
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x   
-     
+      
+      - name: Install playwright 
+        run:  dotnet tool install --global Microsoft.Playwright.CLI
+      - name: Install playwright Browsers
+        run:  playwright install
+      
       - name: Run tests
         run: dotnet test Tests.Playwright/Tests.Playwright.csproj
         env: 
