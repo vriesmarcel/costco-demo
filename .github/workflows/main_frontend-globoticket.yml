@@ -92,6 +92,6 @@ jobs:
           dotnet-version: 6.0.x   
      
       - name: Run tests
-        run: dotnet test Tests.Playwright\Tests.Playwright.csproj
+        run: dotnet test Tests.Playwright/Tests.Playwright.csproj
         env: 
           homepage: ${{ needs.deploy.outputs.homepage }}
