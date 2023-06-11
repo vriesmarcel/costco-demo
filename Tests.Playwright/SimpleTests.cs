@@ -28,7 +28,7 @@ namespace Tests.Playwright
         [TestMethod]
         public async Task SimpleTest()
         {
-            var BuyticketResult = HomePage.GetHomePage(StartPage, false).Result
+            var BuyticketResult = HomePage.GetHomePage(StartPage, true).Result
                 .SelectTicket("John Egbert").Result
                 .BuyTicket().Result
                 .Checkout(new CustomerNico()).Result
