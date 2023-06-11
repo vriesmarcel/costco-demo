@@ -7,12 +7,21 @@ namespace Tests.Playwright
     [TestClass]
     public class SimpleTests
     {
-        private TestContext _context;
+        public TestContext TestContext;
+        public string StartPage = "https://globoticket.azurewebsites.net";
+        [TestInitialize]
+        public void Initialize()
+        {
+            var homepage = System.Environment.GetEnvironmentVariable("HomePage");
+            if(!string.IsNullOrWhiteSpace(homepage))
+                StartPage = homepage.Trim();
+        }
+
 
         [TestMethod]
         public async Task SimpleTest()
         {
-            var BuyticketResult = HomePage.GetHomePage("https://globoticket.azurewebsites.net/", false).Result
+            var BuyticketResult = HomePage.GetHomePage(StartPage, false).Result
                 .SelectTicket("John Egbert").Result
                 .BuyTicket().Result
                 .Checkout(new CustomerNico()).Result
