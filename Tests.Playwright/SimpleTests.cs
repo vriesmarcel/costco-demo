@@ -15,6 +15,13 @@ namespace Tests.Playwright
             var homepage = System.Environment.GetEnvironmentVariable("HomePage");
             if(!string.IsNullOrWhiteSpace(homepage))
                 StartPage = homepage.Trim();
+
+            var exitCode = Microsoft.Playwright.Program.Main(new[] { "install" });
+            if (exitCode != 0)
+            {
+                Console.WriteLine("Failed to install browsers");
+                Environment.Exit(exitCode);
+            }
         }
 
 
