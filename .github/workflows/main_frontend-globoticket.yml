@@ -85,7 +85,11 @@ jobs:
 
       - name: Install playwright browsers
         run:  npm init playwright@latest
-
+      - name: install browsers
+        shell: pwsh
+        run: |
+          bin/Debug/netX/playwright.ps1 install 
+          
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v3
         with:
