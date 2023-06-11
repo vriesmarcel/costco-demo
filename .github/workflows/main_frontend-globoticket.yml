@@ -64,7 +64,6 @@ jobs:
         with:
           app-name: 'globoticket'
           slot-name: 'staging'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C6670285B64B4DAFBF7FD73F060A31CD }}
           package: .
           
   validate:
