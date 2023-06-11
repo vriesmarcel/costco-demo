@@ -1,6 +1,11 @@
 using GloboTicket.Frontend.Services;
 using GloboTicket.Frontend.Models;
 using GloboTicket.Frontend.Services.Ordering;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Prometheus;
+using HealthChecks.UI.Client;
+using GloboTicket.Frontend.HealthChecks;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +24,16 @@ builder.Services.AddHttpClient<IOrderSubmissionService, HttpOrderSubmissionServi
 
 builder.Services.AddSingleton<IShoppingBasketService, InMemoryShoppingBasketService>();
 builder.Services.AddSingleton<Settings>();
+
+builder.Services.AddHealthChecks()
+   .AddCheck<SlowDependencyHealthCheck>("SlowDependencyDemo", tags: new string[] { "ready" })
+   .AddProcessAllocatedMemoryHealthCheck(maximumMegabytesAllocated: 500);
+
+builder.Services.AddHttpClient(Options.DefaultName)
+    .UseHttpClientMetrics();
+
+builder.Services.AddSingleton<Settings>();
+builder.Services.AddApplicationInsightsTelemetry();
 
 var app = builder.Build();
 
@@ -41,5 +56,27 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=EventCatalog}/{action=Index}/{id?}");
+
+
+//map the livelyness and readyness probes
+app.MapHealthChecks("/health/ready",
+new HealthCheckOptions()
+{
+    Predicate = reg => reg.Tags.Contains("ready"),
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.MapHealthChecks("/health/lively",
+new HealthCheckOptions()
+{
+    Predicate = reg => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.UseHttpMetrics();
+app.UseMetricServer();
+
+app.UseEndpoints(endpoints =>
+endpoints.MapMetrics());
 
 app.Run();
