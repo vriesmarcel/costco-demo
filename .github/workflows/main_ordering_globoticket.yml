@@ -9,7 +9,6 @@ on:
       - main
     paths:
       - 'ordering/**'
-      
   workflow_dispatch:
 
 jobs:
