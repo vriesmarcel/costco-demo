@@ -116,7 +116,7 @@ jobs:
           homepage: ${{ needs.deploy.outputs.homepage }}
   FirstTrafic:
     runs-on: ubuntu-latest
-    needs: build
+    needs: validate
     environment:
       name: 'staging'
 
@@ -151,7 +151,7 @@ jobs:
   
   SecondStepTrafic:
     runs-on: ubuntu-latest
-    needs: build
+    needs: FirstTrafic
     environment:
       name: 'staging'
 
@@ -185,7 +185,7 @@ jobs:
   
   ThirdStepTrafic:
     runs-on: ubuntu-latest
-    needs: build
+    needs: SecondStepTrafic
     environment:
       name: 'staging'
 
@@ -218,7 +218,7 @@ jobs:
           homepage: ${{ needs.deploy.outputs.homepage }}
   VipSwap:
     runs-on: ubuntu-latest
-    needs: build
+    needs: ThirdStepTrafic
     environment:
       name: 'staging'
 
