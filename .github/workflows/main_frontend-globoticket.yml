@@ -126,7 +126,7 @@ jobs:
       - name: Move 10% trafic to staging
         uses: Azure/cli@v1.0.7
         with:
-          inlinescript: 'az webapp traffic-routing set --distribution staging=10  --name globoticket --resource-group costco-demo --slot staging'
+          inlinescript: 'az webapp traffic-routing set --distribution staging=10  --name globoticket --resource-group costco-demo'
       - name: validate the deployment is still healthy for 10 seconds
         run: |
             MAX_ATTEMPTS=10
@@ -160,7 +160,7 @@ jobs:
       - name: Move 20% trafic to staging
         uses: Azure/cli@v1.0.7
         with:
-          inlinescript: 'az webapp traffic-routing set --distribution staging=20  --name globoticket --resource-group costco-demo --slot staging'
+          inlinescript: 'az webapp traffic-routing set --distribution staging=20  --name globoticket --resource-group costco-demo'
       - name: validate the deployment is still healthy for 10 seconds
         run: |
             MAX_ATTEMPTS=10
@@ -194,7 +194,7 @@ jobs:
       - name: Move 20% trafic to staging
         uses: Azure/cli@v1.0.7
         with:
-          inlinescript: 'az webapp traffic-routing set --distribution staging=30  --name globoticket --resource-group costco-demo --slot staging'
+          inlinescript: 'az webapp traffic-routing set --distribution staging=30  --name globoticket --resource-group costco-demo'
       - name: validate the deployment is still healthy for 10 seconds
         run: |
             MAX_ATTEMPTS=10
