@@ -93,8 +93,170 @@ jobs:
       
       - name: Install playwright 
         run:  dotnet tool install --global Microsoft.Playwright.CLI
+     
+      - name: ensure deployment is healthy before we test
+        run: |
+            HEALTH_ENDPOINT="https://globoticket-staging.azurewebsites.net/health/ready"
+            while true; do
+              response=$(curl -s "$HEALTH_ENDPOINT")
+              status=$(echo "$response" | jq -r '.status')
 
+              if [[ "$status" == "Healthy" ]]; then
+                echo "Health endpoint current status :" $status
+                break
+              fi
+              echo "Waiting for health endpoint..."
+              sleep 1
+            done
+        env: 
+          homepage: ${{ needs.deploy.outputs.homepage }}
       - name: Run tests
         run: dotnet test Tests.Playwright/Tests.Playwright.csproj
         env: 
           homepage: ${{ needs.deploy.outputs.homepage }}
+  FirstTrafic:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'staging'
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+      - name: Move 10% trafic to staging
+        uses: Azure/cli@v1.0.7
+        with:
+          inlinescript: 'az webapp traffic-routing set --distribution staging=10  --name globoticket --resource-group costco-demo --slot staging'
+      - name: validate the deployment is still healthy for 10 seconds
+        run: |
+            MAX_ATTEMPTS=10
+            HEALTH_ENDPOINT="https://globoticket-staging.azurewebsites.net/health/ready"
+             for ((attempt=1; attempt <= MAX_ATTEMPTS; attempt++)); do
+              response=$(curl -s "$HEALTH_ENDPOINT")
+              status=$(echo "$response" | jq -r '.status')
+
+              if [[ "$status" == "Unhealthy" ]]; then
+                echo "Health endpoint is Unhealthy."
+                exit -1
+              fi
+
+              echo "Attempt $attempt: Health endpoint is:" $status
+              sleep 1
+            done       
+        env: 
+          homepage: ${{ needs.deploy.outputs.homepage }}
+  
+  SecondStepTrafic:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'staging'
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Move 20% trafic to staging
+        uses: Azure/cli@v1.0.7
+        with:
+          inlinescript: 'az webapp traffic-routing set --distribution staging=20  --name globoticket --resource-group costco-demo --slot staging'
+      - name: validate the deployment is still healthy for 10 seconds
+        run: |
+            MAX_ATTEMPTS=10
+            HEALTH_ENDPOINT="https://globoticket-staging.azurewebsites.net/health/ready"
+             for ((attempt=1; attempt <= MAX_ATTEMPTS; attempt++)); do
+              response=$(curl -s "$HEALTH_ENDPOINT")
+              status=$(echo "$response" | jq -r '.status')
+
+              if [[ "$status" == "Unhealthy" ]]; then
+                echo "Health endpoint is Unhealthy."
+                exit -1
+              fi
+
+              echo "Attempt $attempt: Health endpoint is:" $status
+              sleep 1
+            done       
+        env: 
+          homepage: ${{ needs.deploy.outputs.homepage }}
+  
+  ThirdStepTrafic:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'staging'
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Move 20% trafic to staging
+        uses: Azure/cli@v1.0.7
+        with:
+          inlinescript: 'az webapp traffic-routing set --distribution staging=30  --name globoticket --resource-group costco-demo --slot staging'
+      - name: validate the deployment is still healthy for 10 seconds
+        run: |
+            MAX_ATTEMPTS=10
+            HEALTH_ENDPOINT="https://globoticket-staging.azurewebsites.net/health/ready"
+             for ((attempt=1; attempt <= MAX_ATTEMPTS; attempt++)); do
+              response=$(curl -s "$HEALTH_ENDPOINT")
+              status=$(echo "$response" | jq -r '.status')
+
+              if [[ "$status" == "Unhealthy" ]]; then
+                echo "Health endpoint is Unhealthy."
+                exit -1
+              fi
+
+              echo "Attempt $attempt: Health endpoint is:" $status
+              sleep 1
+            done       
+        env: 
+          homepage: ${{ needs.deploy.outputs.homepage }}
+  VipSwap:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'staging'
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Move 30% trafic to staging
+        uses: Azure/cli@v1.0.7
+        with:
+          inlinescript: 'az webapp deployment slot swap --slot staging  --name globoticket --resource-group costco-demo'
+
+      - name: validate the deployment is still healthy for 10 seconds 
+        run: |
+            MAX_ATTEMPTS=10
+            HEALTH_ENDPOINT="https://globoticket-staging.azurewebsites.net/health/ready"
+             for ((attempt=1; attempt <= MAX_ATTEMPTS; attempt++)); do
+              response=$(curl -s "$HEALTH_ENDPOINT")
+              status=$(echo "$response" | jq -r '.status')
+
+              if [[ "$status" == "Unhealthy" ]]; then
+                echo "Health endpoint is Unhealthy."
+                exit -1
+              fi
+
+              echo "Attempt $attempt: Health endpoint is:" $status
+              sleep 1
+            done       
+        env: 
+          homepage: ${{ needs.deploy.outputs.homepage }}
+
+      - name: clear Routing rules (100% to production)
+        uses: Azure/cli@v1.0.7
+        with:
+          inlinescript: 'az webapp traffic-routing clear --name globoticket --resource-group costco-demo'
+
+      - name: clear staging slot
+        uses: Azure/cli@v1.0.7
+        with:
+          inlinescript: 'az webapp deployment slot delete --name globoticket --resource-group costco-demo --slot staging'
